@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>LightRAG Flask UI</title>
+</head>
+<body>
+    <h1>LightRAG 前端測試(資料內容為哈利波特全集原文小說)</h1>
+    <h2>請用英文進行查詢</h2>
+    <div>
+        <label for="query-input">輸入問題：</label>
+        <input type="text" id="query-input" size="60" />
+        <br><br>
+
+        <label for="mode-select">搜尋模式：</label>
+        <select id="mode-select">
+            <option value="naive">naive</option>
+            <option value="local">local</option>
+            <option value="global">global</option>
+            <option value="hybrid">hybrid</option>
+        </select>
+        <br><br>
+
+        <button id="ask-button">送出</button>
+    </div>
+
+    <hr>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("ask-button").addEventListener("click", async function () {
+            const query = document.getElementById("query-input").value.trim();
+            const mode = document.getElementById("mode-select").value;
+            const resultDiv = document.getElementById("result");
+
+            if (!query) {
+                alert("請輸入問題！");
+                return;
+            }
+
+            // 顯示 loading 訊息
+            resultDiv.innerHTML = "<em>Loading...</em>";
+
+            try {
+                const response = await fetch("/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ query, mode }),
+                });
+                const data = await response.json();
+
+                // 將 \n 換行符替換為 <br>
+                const formattedAnswer = data.answer.replace(/\n/g, "<br>");
+
+                // 收到回答後，更新畫面
+                resultDiv.innerHTML = "<strong>回答：</strong>" + formattedAnswer;
+
+            } catch (error) {
+                console.error("Error:", error);
+                resultDiv.innerHTML = "<span style='color:red;'>出錯了，請稍後再試。</span>";
+            }
+        });
+    </script>
+</body>
+</html>
